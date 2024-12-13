@@ -27,17 +27,17 @@ jobs:
     # Testowanie aplikacji
     - name: Test Application
       run: |
-        docker run hello-world-app
+        docker run hello
 
     # Push obrazu Dockera do DockerHub
     - name: Push Docker Image
       env:
-        DOCKER_USER: ${{ secrets.DOCKER_USER }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        DOCKER_USER: kubawrr
+        DOCKER_PASSWORD: xxxxx
       run: |
         echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USER}" --password-stdin
-        docker tag hello-world-app ${DOCKER_USER}/hello-world-app:latest
-        docker push ${DOCKER_USER}/hello-world-app:latest
+        docker tag hello-world-app ${DOCKER_USER}/hello:latest
+        docker push ${DOCKER_USER}/hello:latest
 
   deploy:
     needs: build
@@ -48,9 +48,11 @@ jobs:
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
-        ssh -i ~/.ssh/id_rsa user@server "
-          docker pull ${DOCKER_USER}/hello-world-app:latest &&
+        echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking "
+          docker pull ${DOCKER_USER}/hello:latest &&
           docker stop hello-container || true &&
           docker rm hello-container || true &&
-          docker run -d --name hello-container ${DOCKER_USER}/hello-world-app:latest
+          docker run -d --name hello-container ${DOCKER_USER}/hello:latest
         "
