@@ -2,7 +2,7 @@ FROM gcc:latest AS builder
 
 WORKDIR /app
 
-COPY hello.c
+COPY hello.c .
 
 RUN gcc -o hello hello.c
 
