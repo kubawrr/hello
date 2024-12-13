@@ -62,5 +62,4 @@ push-to-dockerhub:
           docker pull ${DOCKER_USER}/hello:latest &&
           docker stop hello-container || true &&
           docker rm hello-container || true &&
-          docker run -d --name hello-container ${DOCKER_USER}/hello:latest
-        "
+          docker run -d --name hello-container ${DOCKER_USER}/hello:latest"
