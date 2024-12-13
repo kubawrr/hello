@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,30 +27,38 @@ jobs:
     # Testowanie aplikacji
     - name: Test Application
       run: |
-        docker run hello
-
-    # Push obrazu Dockera do DockerHub
-    - name: Push Docker Image
-      env:
-        DOCKER_USER: kubawrr
-        DOCKER_PASSWORD: xxxxx
-      run: |
-        echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USER}" --password-stdin
-        docker tag hello-world-app ${DOCKER_USER}/hello:latest
-        docker push ${DOCKER_USER}/hello:latest
-
-  deploy:
-    needs: build
+        docker run hello-world-app
+push-to-dockerhub:
+    needs: build-and-test
     runs-on: ubuntu-latest
-
     steps:
-    - name: Deploy to Server
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      run: |
-        echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking "
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Log in to dockerhub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{secrets.DOCKER_PASSWORD }}
+      - name: Push Docker Image
+        env:
+          DOCKER_USER: kubawrr
+          DOCKER_PASSWORD: xxxxx
+        run: |
+          echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USER}" --password-stdin
+          docker tag hello-world-app ${DOCKER_USER}/hello:latest
+          docker push ${DOCKER_USER}/hello:latest
+
+    deploy:
+      needs: build
+      runs-on: ubuntu-latest
+      steps:
+      - name: Deploy to Server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking "
           docker pull ${DOCKER_USER}/hello:latest &&
           docker stop hello-container || true &&
           docker rm hello-container || true &&
