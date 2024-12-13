@@ -6,10 +6,10 @@ FROM gcc:latest
 WORKDIR /app
 
 # Copy the C file into the container
-COPY hello_world.c .
+COPY hello.c .
 
 # Compile the C file
-RUN gcc -o hello_world hello_world.c
+RUN gcc -o hello hello.c
 
 # Command to execute the compiled program
-CMD ["./hello_world"]
+CMD ["./hello"]
